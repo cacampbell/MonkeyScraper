@@ -174,10 +174,7 @@ class MonkeyScraper:
         self._check_code(resp)
         self.check_logged_in()
 
-    def _parse_responses(self, links):
-        print(links)
-
-    def scrape(self, survey_url):
+    def _get_analyze_page_root(self, survey_url):
         self.check_logged_in()
         headers = dict(self._headers)
         headers['Referer'] = survey_url
@@ -185,12 +182,15 @@ class MonkeyScraper:
                                 headers=headers,
                                 **self._get_cookies())
         self._check_code(survey_page)
+        return self._page_root(survey_page)
 
-        RESPONSES = etree.XPath(self._responses_selector)
-        root = self._page_root(survey_page)
-        responses = RESPONSES(root)
-        self._parse_responses(responses)
+    def scrape(self, survey_url):
+        page = self._get_analyze_page_root(survey_url)
+        print(page)
 
+    def create_db(self, survey_url):
+        page = self._get_analyze_page_root(survey_url)
+        print(page)
 
     def log_out(self):
         logout_headers = dict(self._headers)

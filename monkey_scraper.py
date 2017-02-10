@@ -14,15 +14,15 @@ def main(username, password, survey_url):
     :param survey_url: str: the "analyze" page url for your survey
     :return:
     """
-    scraper = MonkeyScraper()
-    scraper.init()
-    scraper.log_in(username=username, password=password)
-    scraper.scrape(survey_url)
-    scraper.log_out()
-    scraper.close()
+    # scraper = MonkeyScraper()
+    # scraper.init()
+    # scraper.log_in(username=username, password=password)
+    # scraper.scrape(survey_url)
+    # scraper.log_out()
+    # scraper.close()
 
     with MonkeyScraper(username=username, password=password) as scraper:
-        scraper.scrape(survey_url)
+        survey = scraper.scrape(survey_url)
 
 
 if __name__ == '__main__':
