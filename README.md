@@ -16,8 +16,12 @@ However, this could likewise be explanded to be a full management tool. In any c
 ### Example
 
 ```python
-from MonkeyScraper import MonkeyScraper
 from sys import argv
+import logging
+from MonkeyScraper import MonkeyScraper
+
+LOG_FILENAME = 'MonkeyScraper.log'
+logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG)
 
 
 def main(username, password):
@@ -26,7 +30,7 @@ def main(username, password):
     scraper.log_in(username=username, password=password)
     print(scraper)  # Or do other stuff
     # ...
-    scraper.scrape('<survey summary page url>', format='csv', file='<output file or blank for stdout>')
+    scraper.scrape('<survey analyze page url>', format='csv', file='<output file or blank for stdout>')
     # ...
     scraper.log_out()
     scraper.close()
@@ -35,7 +39,7 @@ def main(username, password):
     #  with MonkeyScraper(username=username, password=password) as scraper:
         #  print(scraper)  # Or do other stuff
         # ...
-        #  scraper.scrape('<survey summary page url>', format='csv', file='<output file or blank for stdout>')
+        #  scraper.scrape('<survey analyze page url>', format='csv', file='<output file or blank for stdout>')
         
 
 if __name__ == '__main__':

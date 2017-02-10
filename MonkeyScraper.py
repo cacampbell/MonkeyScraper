@@ -10,9 +10,9 @@
 #
 # cacampbell 2/9/17
 from lxml import etree
-
 import requests
-from logging import log
+import logging
+
 
 
 class MonkeyScraperException(Exception):
@@ -29,6 +29,7 @@ class MonkeyScraper:
     _login_url = _monkey + '/user/sign-in/'
     _logout_url = _monkey + '/user/sign-out/'
     _logout_button_selector = '//*[@id="dd-my-account"]/ul/li[5]/a'
+    _responses_selector = "//*[contains(@class, 'ta-response-item')]"
     _headers = {
             'User-Agent': 'Mozilla/5.0',
             'Upgrade-Insecure-Requests': '1',
@@ -55,7 +56,7 @@ class MonkeyScraper:
 
     def __exit__(self, ex_type, ex_val, traceback):
         if traceback:
-            log(level='error', msg=traceback)
+            logging.log(level=logging.CRITICAL, msg=traceback)
 
         self.log_out()
         self.close()
@@ -64,9 +65,16 @@ class MonkeyScraper:
         # These are apparently the cookies that are necessary for navigating
         # the SurveyMonkey site without running into forbidden errors (403)
         _cookie_keys = keys = ['SSLB', 'apex__sm', 'auth', 'session', 'sm_rec',
-                               'ep201', 'ep202']
+                               'ep201', 'ep202', 'tld_user', 'tld_set',
+                               'endpages_seen', 'SSRT', 'ucs_topbar_views']
         if self._session.cookies:
-            return {key: self._session.cookies[key] for key in _cookie_keys}
+            cookies = {}
+            for key in _cookie_keys:
+                try:
+                    cookies[key] = self._session.cookies[key]
+                except KeyError:
+                    pass
+            return cookies
         else:
             raise(
                 MonkeyScraperException(
@@ -137,7 +145,7 @@ class MonkeyScraper:
 
     def log_in(self, username='', password=''):
         if self._logged_in():
-            log(level='warn', msg='Already logged in')
+            logging.log(level=logging.WARNING, msg='Already logged in')
             return
 
         if not username:
@@ -166,6 +174,24 @@ class MonkeyScraper:
         self._check_code(resp)
         self.check_logged_in()
 
+    def _parse_responses(self, links):
+        print(links)
+
+    def scrape(self, survey_url):
+        self.check_logged_in()
+        headers = dict(self._headers)
+        headers['Referer'] = survey_url
+        survey_page = self._get(survey_url,
+                                headers=headers,
+                                **self._get_cookies())
+        self._check_code(survey_page)
+
+        RESPONSES = etree.XPath(self._responses_selector)
+        root = self._page_root(survey_page)
+        responses = RESPONSES(root)
+        self._parse_responses(responses)
+
+
     def log_out(self):
         logout_headers = dict(self._headers)
         logout_headers['Referer'] = self._home_url
@@ -177,7 +203,7 @@ class MonkeyScraper:
             )
             self._check_code(resp)
         else:
-            log(level='warn', msg='Already logged out')
+            logging.log(level=logging.WARNING, msg='Already logged out')
 
     def close(self):
         self._session.close()
